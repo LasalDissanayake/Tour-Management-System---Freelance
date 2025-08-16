@@ -14,6 +14,15 @@ This guide will help you test the Tourist Management System API using Postman. I
 
 3. Import the collection into Postman (or create a new collection)
 
+## Pre-configured Admin Account
+
+The system comes with a pre-configured admin account:
+- **Email**: admin@gmail.com
+- **Password**: 12345678
+- **Role**: Admin
+
+Use these credentials to access the admin dashboard and manage the system.
+
 ## Authentication Endpoints
 
 ### 1. User Registration
@@ -80,10 +89,34 @@ This guide will help you test the Tourist Management System API using Postman. I
 **Headers**:
 - Content-Type: application/json
 
-**Body**:
+**Body (Admin Login)**:
+```json
+{
+  "email": "admin@gmail.com",
+  "password": "12345678"
+}
+```
+
+**Body (Guide Login)**:
 ```json
 {
   "email": "guide@example.com",
+  "password": "password123"
+}
+```
+
+**Body (Tourist Login)**:
+```json
+{
+  "email": "tourist@example.com",
+  "password": "password123"
+}
+```
+
+**Body (Service Provider Login)**:
+```json
+{
+  "email": "provider@example.com",
   "password": "password123"
 }
 ```

@@ -6,6 +6,7 @@ import Register from '../pages/auth/Register';
 import TouristDashboard from '../pages/dashboard/TouristDashboard';
 import GuideDashboard from '../pages/dashboard/GuideDashboard';
 import ServiceProviderDashboard from '../pages/dashboard/ServiceProviderDashboard';
+import AdminDashboard from '../pages/dashboard/AdminDashboard';
 import NotFound from '../pages/NotFound';
 import ProtectedRoute from '../components/ProtectedRoute';
 
@@ -47,6 +48,8 @@ const MainAppRouter = () => {
         return <Navigate to="/dashboard/guide" replace />;
       case 'ServiceProvider':
         return <Navigate to="/dashboard/service-provider" replace />;
+      case 'Admin':
+        return <Navigate to="/dashboard/admin" replace />;
       default:
         return <Navigate to="/login" replace />;
     }
@@ -82,6 +85,15 @@ const MainAppRouter = () => {
         element={
           <ProtectedRoute allowedRoles={['ServiceProvider']}>
             <ServiceProviderDashboard />
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/dashboard/admin"
+        element={
+          <ProtectedRoute allowedRoles={['Admin']}>
+            <AdminDashboard />
           </ProtectedRoute>
         }
       />
