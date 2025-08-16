@@ -274,13 +274,7 @@ const AdminDashboard = () => {
                     Role
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Joined
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
                   </th>
                 </tr>
               </thead>
@@ -309,29 +303,8 @@ const AdminDashboard = () => {
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {user.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button className="text-indigo-600 hover:text-indigo-900" title="View Details">
-                          <EyeIcon className="h-4 w-4" />
-                        </button>
-                        {user.role !== 'Admin' && (
-                          <button 
-                            onClick={() => toggleUserStatus(user._id)}
-                            className={`${user.isActive ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}`}
-                            title={user.isActive ? 'Deactivate User' : 'Activate User'}
-                          >
-                            {user.isActive ? <TrashIcon className="h-4 w-4" /> : <PencilIcon className="h-4 w-4" />}
-                          </button>
-                        )}
-                      </div>
                     </td>
                   </tr>
                 ))}
@@ -365,39 +338,6 @@ const AdminDashboard = () => {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">System Settings</h3>
-              <p className="text-sm text-gray-500 mb-4">Configure system-wide settings and preferences.</p>
-              <button className="w-full bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">
-                Manage Settings
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Reports</h3>
-              <p className="text-sm text-gray-500 mb-4">Generate and view system reports and analytics.</p>
-              <button className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
-                View Reports
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Backup & Security</h3>
-              <p className="text-sm text-gray-500 mb-4">Manage system backups and security settings.</p>
-              <button className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
-                Security Settings
-              </button>
-            </div>
-          </div>
         </div>
       </main>
     </div>
