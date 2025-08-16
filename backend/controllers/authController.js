@@ -29,6 +29,17 @@ exports.register = async (req, res) => {
 
     await user.save();
 
+    // Store user info in session (auto-login after registration)
+    req.session.userId = user._id;
+    req.session.userRole = user.role;
+    req.session.user = {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role
+    };
+
     res.status(201).json({
       message: 'User registered successfully',
       user: {
@@ -65,6 +76,13 @@ exports.login = async (req, res) => {
     // Store user info in session
     req.session.userId = user._id;
     req.session.userRole = user.role;
+    req.session.user = {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role
+    };
 
     res.json({
       message: 'Login successful',

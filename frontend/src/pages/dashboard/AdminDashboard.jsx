@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import axios from 'axios';
 import {
   UserGroupIcon,
   ChartBarIcon,
@@ -14,30 +15,86 @@ const AdminDashboard = () => {
   const { authState, logout } = useAuth();
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalGuides: 0,
-    totalTourists: 0,
-    totalServiceProviders: 0
+    total: 0,
+    guides: 0,
+    tourists: 0,
+    serviceProviders: 0,
+    admins: 0
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectedRole, setSelectedRole] = useState('all');
+
+  // Fetch user statistics
+  const fetchStats = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/admin/stats', {
+        withCredentials: true
+      });
+      if (response.data.success) {
+        setStats(response.data.stats);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      setError('Failed to fetch user statistics');
+    }
+  };
+
+  // Fetch users list
+  const fetchUsers = async (page = 1, role = 'all') => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/admin/users?page=${page}&role=${role}&limit=10`, {
+        withCredentials: true
+      });
+      if (response.data.success) {
+        setUsers(response.data.users);
+        setTotalPages(response.data.pagination.totalPages);
+        setCurrentPage(response.data.pagination.currentPage);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setError('Failed to fetch users');
+    }
+  };
+
+  // Toggle user status
+  const toggleUserStatus = async (userId) => {
+    try {
+      const response = await axios.patch(`http://localhost:5000/api/admin/users/${userId}/toggle-status`, {}, {
+        withCredentials: true
+      });
+      if (response.data.success) {
+        // Refresh users list and stats
+        fetchUsers(currentPage, selectedRole);
+        fetchStats();
+      }
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+      alert('Failed to update user status');
+    }
+  };
 
   useEffect(() => {
-    // Mock data for now - in a real app, you'd fetch this from the API
-    const mockUsers = [
-      { id: 1, firstName: 'John', lastName: 'Doe', email: 'guide@example.com', role: 'Guide', isActive: true, createdAt: '2024-01-15' },
-      { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'tourist@example.com', role: 'Tourist', isActive: true, createdAt: '2024-01-16' },
-      { id: 3, firstName: 'Mike', lastName: 'Johnson', email: 'provider@example.com', role: 'ServiceProvider', isActive: true, createdAt: '2024-01-17' },
-    ];
-
-    setUsers(mockUsers);
-    setStats({
-      totalUsers: mockUsers.length,
-      totalGuides: mockUsers.filter(u => u.role === 'Guide').length,
-      totalTourists: mockUsers.filter(u => u.role === 'Tourist').length,
-      totalServiceProviders: mockUsers.filter(u => u.role === 'ServiceProvider').length
-    });
-    setLoading(false);
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchStats(), fetchUsers()]);
+      setLoading(false);
+    };
+    loadData();
   }, []);
+
+  const handleRoleFilter = (role) => {
+    setSelectedRole(role);
+    setCurrentPage(1);
+    fetchUsers(1, role);
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchUsers(page, selectedRole);
+  };
 
   const handleLogout = async () => {
     try {
@@ -107,7 +164,7 @@ const AdminDashboard = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
-                    <dd className="text-lg font-medium text-gray-900">{stats.totalUsers}</dd>
+                    <dd className="text-lg font-medium text-gray-900">{stats.total}</dd>
                   </dl>
                 </div>
               </div>
@@ -123,7 +180,7 @@ const AdminDashboard = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Guides</dt>
-                    <dd className="text-lg font-medium text-gray-900">{stats.totalGuides}</dd>
+                    <dd className="text-lg font-medium text-gray-900">{stats.guides}</dd>
                   </dl>
                 </div>
               </div>
@@ -139,7 +196,7 @@ const AdminDashboard = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Tourists</dt>
-                    <dd className="text-lg font-medium text-gray-900">{stats.totalTourists}</dd>
+                    <dd className="text-lg font-medium text-gray-900">{stats.tourists}</dd>
                   </dl>
                 </div>
               </div>
@@ -155,7 +212,7 @@ const AdminDashboard = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Service Providers</dt>
-                    <dd className="text-lg font-medium text-gray-900">{stats.totalServiceProviders}</dd>
+                    <dd className="text-lg font-medium text-gray-900">{stats.serviceProviders}</dd>
                   </dl>
                 </div>
               </div>
@@ -166,10 +223,45 @@ const AdminDashboard = () => {
         {/* User Management Table */}
         <div className="bg-white shadow overflow-hidden sm:rounded-md">
           <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">User Management</h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Manage all users in the system
-            </p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">User Management</h3>
+                <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                  Manage all users in the system
+                </p>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleRoleFilter('all')}
+                  className={`px-3 py-1 rounded-full text-sm ${selectedRole === 'all' ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => handleRoleFilter('Guide')}
+                  className={`px-3 py-1 rounded-full text-sm ${selectedRole === 'Guide' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  Guides
+                </button>
+                <button
+                  onClick={() => handleRoleFilter('Tourist')}
+                  className={`px-3 py-1 rounded-full text-sm ${selectedRole === 'Tourist' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  Tourists
+                </button>
+                <button
+                  onClick={() => handleRoleFilter('ServiceProvider')}
+                  className={`px-3 py-1 rounded-full text-sm ${selectedRole === 'ServiceProvider' ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+                >
+                  Providers
+                </button>
+              </div>
+            </div>
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -194,7 +286,7 @@ const AdminDashboard = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {users.map((user) => (
-                  <tr key={user.id}>
+                  <tr key={user._id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
@@ -227,15 +319,18 @@ const AdminDashboard = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <button className="text-indigo-600 hover:text-indigo-900">
+                        <button className="text-indigo-600 hover:text-indigo-900" title="View Details">
                           <EyeIcon className="h-4 w-4" />
                         </button>
-                        <button className="text-blue-600 hover:text-blue-900">
-                          <PencilIcon className="h-4 w-4" />
-                        </button>
-                        <button className="text-red-600 hover:text-red-900">
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
+                        {user.role !== 'Admin' && (
+                          <button 
+                            onClick={() => toggleUserStatus(user._id)}
+                            className={`${user.isActive ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}`}
+                            title={user.isActive ? 'Deactivate User' : 'Activate User'}
+                          >
+                            {user.isActive ? <TrashIcon className="h-4 w-4" /> : <PencilIcon className="h-4 w-4" />}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -243,6 +338,33 @@ const AdminDashboard = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Quick Actions */}

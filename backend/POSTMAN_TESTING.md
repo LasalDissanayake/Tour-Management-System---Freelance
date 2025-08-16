@@ -2,6 +2,13 @@
 
 This guide will help you test the Tourist Management System API using Postman. It includes all the necessary endpoints, request examples, and expected responses.
 
+## Admin Credentials
+
+For testing admin functionality, use these credentials:
+- **Email**: `admin@gmail.com`
+- **Password**: `12345678`
+- **Role**: `Admin`
+
 ## Setup
 
 1. Make sure your backend server is running:
@@ -179,6 +186,96 @@ Use these credentials to access the admin dashboard and manage the system.
 ```json
 {
   "message": "Logged out successfully"
+}
+```
+
+## Admin Endpoints (Admin Only)
+
+### 1. Get User Statistics
+
+**Endpoint**: `GET http://localhost:5000/api/admin/stats`
+
+**Headers**: None (session cookie will be sent automatically)
+
+**Expected Response (200 OK)**:
+```json
+{
+  "success": true,
+  "stats": {
+    "guides": 2,
+    "tourists": 2,
+    "serviceProviders": 1,
+    "admins": 1,
+    "total": 6
+  }
+}
+```
+
+### 2. Get All Users
+
+**Endpoint**: `GET http://localhost:5000/api/admin/users`
+
+**Query Parameters**:
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Users per page (default: 10)
+- `role` (optional): Filter by role (Guide, Tourist, ServiceProvider, Admin, or all)
+
+**Example**: `GET http://localhost:5000/api/admin/users?page=1&limit=5&role=Guide`
+
+**Expected Response (200 OK)**:
+```json
+{
+  "success": true,
+  "users": [
+    {
+      "_id": "user_id_here",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "guide@example.com",
+      "role": "Guide",
+      "isActive": true,
+      "createdAt": "2023-04-01T12:00:00.000Z",
+      "updatedAt": "2023-04-01T12:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 1,
+    "totalUsers": 1,
+    "hasNext": false,
+    "hasPrev": false
+  }
+}
+```
+
+### 3. Toggle User Status
+
+**Endpoint**: `PATCH http://localhost:5000/api/admin/users/:userId/toggle-status`
+
+**Headers**: None (session cookie will be sent automatically)
+
+**Expected Response (200 OK)**:
+```json
+{
+  "success": true,
+  "message": "User deactivated successfully",
+  "user": {
+    "_id": "user_id_here",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "guide@example.com",
+    "role": "Guide",
+    "isActive": false,
+    "createdAt": "2023-04-01T12:00:00.000Z",
+    "updatedAt": "2023-04-01T12:00:00.000Z"
+  }
+}
+```
+
+**Expected Response (403 Forbidden - for non-admin users)**:
+```json
+{
+  "message": "Access denied. Admin privileges required."
 }
 ```
 
