@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../contexts/ToastContext';
-import userService from '../../services/userService';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import userService from '../services/userService';
 import { 
   UserIcon, 
   EnvelopeIcon, 

@@ -11,6 +11,7 @@ import AdminDashboard from '../pages/dashboard/AdminDashboard';
 import NotFound from '../pages/NotFound';
 import ProtectedRoute from '../components/ProtectedRoute';
 import DashboardLayout from '../components/layout/DashboardLayout';
+import ProfileEdit from '../components/ProfileEdit';
 
 const MainAppRouter = () => {
   const { authState, checkAuth } = useAuth();
@@ -74,6 +75,17 @@ const MainAppRouter = () => {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/dashboard/tourist/profile"
+        element={
+          <ProtectedRoute allowedRoles={['Tourist']}>
+            <DashboardLayout>
+              <ProfileEdit />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
       
       <Route
         path="/dashboard/guide"
@@ -91,7 +103,7 @@ const MainAppRouter = () => {
         element={
           <ProtectedRoute allowedRoles={['Guide']}>
             <DashboardLayout>
-              <GuideProfile />
+              <ProfileEdit />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -103,6 +115,29 @@ const MainAppRouter = () => {
           <ProtectedRoute allowedRoles={['ServiceProvider']}>
             <DashboardLayout>
               <ServiceProviderDashboard />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/service-provider/profile"
+        element={
+          <ProtectedRoute allowedRoles={['ServiceProvider']}>
+            <DashboardLayout>
+              <ProfileEdit />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* General profile route for any authenticated user */}
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute allowedRoles={['Tourist', 'Guide', 'ServiceProvider', 'Admin']}>
+            <DashboardLayout>
+              <ProfileEdit />
             </DashboardLayout>
           </ProtectedRoute>
         }
