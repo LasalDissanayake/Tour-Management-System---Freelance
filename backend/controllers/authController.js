@@ -305,3 +305,45 @@ exports.uploadProfilePicture = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+// Delete user profile
+exports.deleteProfile = async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+
+    // Get user to delete profile picture if it exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Delete profile picture file if it exists
+    if (user.profilePicture) {
+      const imagePath = path.join(__dirname, '../uploads', path.basename(user.profilePicture));
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+
+    // Delete user from database
+    await User.findByIdAndDelete(userId);
+
+    // Destroy session
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destruction error:', err);
+        return res.status(500).json({ message: 'Error destroying session' });
+      }
+      
+      res.clearCookie('connect.sid');
+      res.json({ message: 'Profile deleted successfully' });
+    });
+  } catch (error) {
+    console.error('Delete profile error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

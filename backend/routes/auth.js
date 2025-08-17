@@ -63,6 +63,9 @@ router.get('/profile', authController.getProfile);
 // Update profile route (with optional profile picture upload)
 router.put('/profile', upload.single('profilePicture'), authController.updateProfile);
 
+// Delete profile route
+router.delete('/profile', authController.deleteProfile);
+
 // Upload profile picture route
 router.post('/upload-profile-picture', upload.single('profilePicture'), authController.uploadProfilePicture);
 

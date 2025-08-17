@@ -11,14 +11,18 @@ import {
   CheckIcon,
   XMarkIcon,
   ShieldCheckIcon,
-  StarIcon
+  StarIcon,
+  TrashIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
 const ProfileEdit = () => {
-  const { authState, checkAuth } = useAuth();
+  const { authState, checkAuth, logout } = useAuth();
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -113,6 +117,27 @@ const ProfileEdit = () => {
     }
   };
 
+  const handleDeleteProfile = async () => {
+    try {
+      setIsDeleting(true);
+      await userService.deleteProfile();
+      showToast('Profile deleted successfully', 'success');
+      
+      // Give time for toast to show
+      setTimeout(async () => {
+        // Logout user after successful deletion
+        await logout();
+        // Force page refresh to ensure clean state
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      showToast(error.response?.data?.message || 'Failed to delete profile', 'error');
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   if (!authState.user) {
     return <div>Loading...</div>;
   }
@@ -137,13 +162,22 @@ const ProfileEdit = () => {
             {/* Edit/Save Buttons */}
             <div className="relative flex justify-end mb-4">
               {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all duration-300 border border-white/30 shadow-lg hover:shadow-xl transform hover:scale-105"
-                >
-                  <PencilIcon className="w-5 h-5 mr-2" />
-                  Edit Profile
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="flex items-center px-6 py-3 bg-red-500/20 backdrop-blur-sm text-white rounded-xl hover:bg-red-500/30 transition-all duration-300 border border-red-300/30 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    <TrashIcon className="w-5 h-5 mr-2" />
+                    Delete Profile
+                  </button>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-xl hover:bg-white/30 transition-all duration-300 border border-white/30 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    <PencilIcon className="w-5 h-5 mr-2" />
+                    Edit Profile
+                  </button>
+                </div>
               ) : (
                 <div className="flex space-x-3">
                   <button
@@ -411,6 +445,70 @@ const ProfileEdit = () => {
             <p className="text-sm text-gray-600">Access to all platform features</p>
           </div>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300">
+              <div className="p-6">
+                {/* Modal Header */}
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                    <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Delete Profile</h3>
+                    <p className="text-sm text-gray-500">This action cannot be undone</p>
+                  </div>
+                </div>
+                
+                {/* Modal Content */}
+                <div className="mb-6">
+                  <p className="text-gray-700 mb-4">
+                    Are you sure you want to delete your profile? This will permanently remove:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                    <li>Your personal information</li>
+                    <li>Profile picture</li>
+                    <li>Account access</li>
+                    <li>All associated data</li>
+                  </ul>
+                  <p className="text-red-600 text-sm font-medium mt-4">
+                    This action is irreversible and cannot be undone.
+                  </p>
+                </div>
+                
+                {/* Modal Actions */}
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={isDeleting}
+                    className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-300 font-medium disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteProfile}
+                    disabled={isDeleting}
+                    className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-300 font-medium disabled:opacity-50 flex items-center justify-center"
+                  >
+                    {isDeleting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <TrashIcon className="w-4 h-4 mr-2" />
+                        Delete Forever
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
