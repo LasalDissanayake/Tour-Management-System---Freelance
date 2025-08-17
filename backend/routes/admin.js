@@ -147,7 +147,17 @@ router.get('/users/report', requireAdmin, async (req, res) => {
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     
     const PDFDocument = require('pdfkit');
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({
+      bufferPages: true,
+      autoFirstPage: true,
+      size: 'A4',
+      margin: 50,
+      info: {
+        Title: 'Users Report',
+        Author: 'Tourist Management System',
+        Subject: 'User Management Report'
+      }
+    });
     
     // Set response headers for PDF download
     res.setHeader('Content-Type', 'application/pdf');
@@ -156,18 +166,48 @@ router.get('/users/report', requireAdmin, async (req, res) => {
     // Pipe PDF to response
     doc.pipe(res);
     
-    // Get all users for report
-    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    // Apply same filtering logic as regular users endpoint
+    const role = req.query.role; // Optional role filter
+    const search = req.query.search; // Optional search term
+
+    const query = {};
     
-    // Get stats
-    const stats = await User.aggregate([
+    // Role filter
+    if (role && role !== 'all') {
+      query.role = role;
+    }
+
+    // Search filter
+    if (search && search.trim() !== '') {
+      query.$or = [
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Get filtered users for report
+    const users = await User.find(query).select('-password').sort({ createdAt: -1 });
+    
+    // Get stats for filtered data
+    const statsQuery = query && Object.keys(query).length > 0 ? [
+      { $match: query },
       {
         $group: {
           _id: '$role',
           count: { $sum: 1 }
         }
       }
-    ]);
+    ] : [
+      {
+        $group: {
+          _id: '$role',
+          count: { $sum: 1 }
+        }
+      }
+    ];
+    
+    const stats = await User.aggregate(statsQuery);
     
     const userStats = {
       guides: 0,
@@ -213,7 +253,7 @@ router.get('/users/report', requireAdmin, async (req, res) => {
     
     // Statistics section with cards
     let yPos = 150;
-    doc.fontSize(18).fillColor(primaryColor).text('📊 User Statistics', 50, yPos);
+    doc.fontSize(18).fillColor(primaryColor).text('User Statistics', 50, yPos);
     
     // Statistics cards
     yPos += 40;
@@ -243,7 +283,7 @@ router.get('/users/report', requireAdmin, async (req, res) => {
     
     // User Details Table
     yPos += 120;
-    doc.fontSize(18).fillColor(primaryColor).text('👥 User Details', 50, yPos);
+    doc.fontSize(18).fillColor(primaryColor).text('User Details', 50, yPos);
     
     yPos += 40;
     
@@ -306,11 +346,7 @@ router.get('/users/report', requireAdmin, async (req, res) => {
       yPos += 18;
     });
     
-    // Footer
-    const footerY = doc.page.height - 50;
-    doc.rect(0, footerY - 10, doc.page.width, 60).fill('#f8fafc');
-    doc.fontSize(10).fillColor('#6b7280').text('Tourist Management System © 2025', 50, footerY);
-    doc.text(`Report contains ${userStats.total} users across ${Object.keys(userStats).length - 1} roles`, 50, footerY + 15);
+    // Footer - removed unwanted details
     
     // Finalize PDF
     doc.end();

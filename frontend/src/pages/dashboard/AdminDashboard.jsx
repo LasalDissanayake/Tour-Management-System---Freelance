@@ -135,8 +135,17 @@ const AdminDashboard = () => {
     try {
       showInfo('📄 Generating report... Please wait');
       
+      // Build URL with current filters
+      const params = new URLSearchParams();
+      if (selectedRole !== 'all') {
+        params.append('role', selectedRole);
+      }
+      if (searchTerm.trim() !== '') {
+        params.append('search', searchTerm.trim());
+      }
+      
       // Use window.open for PDF download to avoid CORS issues
-      const reportUrl = 'http://localhost:5000/api/admin/users/report';
+      const reportUrl = `http://localhost:5000/api/admin/users/report${params.toString() ? '?' + params.toString() : ''}`;
       const newWindow = window.open(reportUrl, '_blank');
       
       // Fallback if popup is blocked
@@ -145,7 +154,8 @@ const AdminDashboard = () => {
         const link = document.createElement('a');
         link.href = reportUrl;
         link.target = '_blank';
-        link.download = `users-report-${new Date().toISOString().split('T')[0]}.pdf`;
+        const fileName = `users-report-${selectedRole !== 'all' ? selectedRole + '-' : ''}${new Date().toISOString().split('T')[0]}.pdf`;
+        link.download = fileName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
