@@ -22,13 +22,7 @@ const ProfileEdit = () => {
     lastName: '',
     email: '',
     mobile: '',
-    role: '',
-    specialization: '',
-    experience: '',
-    businessName: '',
-    serviceType: '',
-    nationality: '',
-    preferences: []
+    role: ''
   });
   const [profilePicture, setProfilePicture] = useState(null);
   const [profilePicturePreview, setProfilePicturePreview] = useState(null);
@@ -40,13 +34,7 @@ const ProfileEdit = () => {
         lastName: authState.user.lastName || '',
         email: authState.user.email || '',
         mobile: authState.user.mobile || '',
-        role: authState.user.role || '',
-        specialization: authState.user.specialization || '',
-        experience: authState.user.experience || '',
-        businessName: authState.user.businessName || '',
-        serviceType: authState.user.serviceType || '',
-        nationality: authState.user.nationality || '',
-        preferences: authState.user.preferences || []
+        role: authState.user.role || ''
       });
       
       if (authState.user.profilePicture) {
@@ -114,13 +102,7 @@ const ProfileEdit = () => {
         lastName: authState.user.lastName || '',
         email: authState.user.email || '',
         mobile: authState.user.mobile || '',
-        role: authState.user.role || '',
-        specialization: authState.user.specialization || '',
-        experience: authState.user.experience || '',
-        businessName: authState.user.businessName || '',
-        serviceType: authState.user.serviceType || '',
-        nationality: authState.user.nationality || '',
-        preferences: authState.user.preferences || []
+        role: authState.user.role || ''
       });
       
       if (authState.user.profilePicture) {
@@ -296,105 +278,6 @@ const ProfileEdit = () => {
                 />
               </div>
             </div>
-
-            {/* Role-specific fields */}
-            {profileData.role === 'Guide' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Specialization
-                  </label>
-                  <input
-                    type="text"
-                    name="specialization"
-                    value={profileData.specialization}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      isEditing 
-                        ? 'border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent' 
-                        : 'border-gray-200 bg-gray-50'
-                    }`}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Experience (years)
-                  </label>
-                  <input
-                    type="number"
-                    name="experience"
-                    value={profileData.experience}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      isEditing 
-                        ? 'border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent' 
-                        : 'border-gray-200 bg-gray-50'
-                    }`}
-                  />
-                </div>
-              </>
-            )}
-
-            {profileData.role === 'ServiceProvider' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Business Name
-                  </label>
-                  <input
-                    type="text"
-                    name="businessName"
-                    value={profileData.businessName}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      isEditing 
-                        ? 'border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent' 
-                        : 'border-gray-200 bg-gray-50'
-                    }`}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Service Type
-                  </label>
-                  <input
-                    type="text"
-                    name="serviceType"
-                    value={profileData.serviceType}
-                    onChange={handleInputChange}
-                    disabled={!isEditing}
-                    className={`w-full px-3 py-2 border rounded-lg ${
-                      isEditing 
-                        ? 'border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent' 
-                        : 'border-gray-200 bg-gray-50'
-                    }`}
-                  />
-                </div>
-              </>
-            )}
-
-            {profileData.role === 'Tourist' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nationality
-                </label>
-                <input
-                  type="text"
-                  name="nationality"
-                  value={profileData.nationality}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  className={`w-full px-3 py-2 border rounded-lg ${
-                    isEditing 
-                      ? 'border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent' 
-                      : 'border-gray-200 bg-gray-50'
-                  }`}
-                />
-              </div>
-            )}
           </div>
         </div>
       </div>
