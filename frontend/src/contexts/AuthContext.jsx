@@ -48,6 +48,16 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
     } catch (error) {
+      // 401 is expected when user is not authenticated, don't treat it as an error
+      if (error.response?.status === 401) {
+        setAuthState({
+          ...initialState,
+          isLoading: false
+        });
+        return null;
+      }
+      
+      // Other errors should be handled
       setAuthState({
         ...initialState,
         isLoading: false,
@@ -89,10 +99,23 @@ export const AuthProvider = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
+      // Determine content type based on data type
+      const config = { 
+        withCredentials: true 
+      };
+      
+      // If data is FormData (for file upload), DON'T set content-type header
+      // The browser will set it automatically with the proper boundary
+      if (!(data instanceof FormData)) {
+        config.headers = {
+          'Content-Type': 'application/json'
+        };
+      }
+      
       const response = await axios.post(
         `${API_URL}/auth/register`, 
         data,
-        { withCredentials: true }
+        config
       );
       
       setAuthState({

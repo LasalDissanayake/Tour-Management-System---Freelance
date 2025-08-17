@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const { body } = require('express-validator');
+const upload = require('../config/multer');
 
 // Validation rules for registration
 const registerValidation = [
@@ -17,6 +18,10 @@ const registerValidation = [
     .not().isEmpty().withMessage('Email is required')
     .isEmail().withMessage('Please provide a valid email')
     .normalizeEmail(),
+
+  body('mobile')
+    .not().isEmpty().withMessage('Mobile number is required')
+    .isLength({ min: 10, max: 15 }).withMessage('Please provide a valid mobile number'),
   
   body('password')
     .not().isEmpty().withMessage('Password is required')
@@ -46,14 +51,20 @@ const loginValidation = [
     .not().isEmpty().withMessage('Password is required')
 ];
 
-// Register route
-router.post('/register', registerValidation, authController.register);
+// Register route - multer first, then custom validation
+router.post('/register', upload.single('profilePicture'), authController.register);
 
 // Login route
 router.post('/login', loginValidation, authController.login);
 
 // Get user profile route
 router.get('/profile', authController.getProfile);
+
+// Update profile route (with optional profile picture upload)
+router.put('/profile', upload.single('profilePicture'), authController.updateProfile);
+
+// Upload profile picture route
+router.post('/upload-profile-picture', upload.single('profilePicture'), authController.uploadProfilePicture);
 
 // Logout route
 router.post('/logout', authController.logout);
