@@ -5,10 +5,12 @@ import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 import TouristDashboard from '../pages/dashboard/TouristDashboard';
 import GuideDashboard from '../pages/dashboard/GuideDashboard';
+import GuideProfile from '../pages/dashboard/GuideProfile';
 import ServiceProviderDashboard from '../pages/dashboard/ServiceProviderDashboard';
 import AdminDashboard from '../pages/dashboard/AdminDashboard';
 import NotFound from '../pages/NotFound';
 import ProtectedRoute from '../components/ProtectedRoute';
+import DashboardLayout from '../components/layout/DashboardLayout';
 
 const MainAppRouter = () => {
   const { authState, checkAuth } = useAuth();
@@ -66,7 +68,9 @@ const MainAppRouter = () => {
         path="/dashboard/tourist"
         element={
           <ProtectedRoute allowedRoles={['Tourist']}>
-            <TouristDashboard />
+            <DashboardLayout>
+              <TouristDashboard />
+            </DashboardLayout>
           </ProtectedRoute>
         }
       />
@@ -75,7 +79,20 @@ const MainAppRouter = () => {
         path="/dashboard/guide"
         element={
           <ProtectedRoute allowedRoles={['Guide']}>
-            <GuideDashboard />
+            <DashboardLayout>
+              <GuideDashboard />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/dashboard/guide/profile"
+        element={
+          <ProtectedRoute allowedRoles={['Guide']}>
+            <DashboardLayout>
+              <GuideProfile />
+            </DashboardLayout>
           </ProtectedRoute>
         }
       />
@@ -84,7 +101,9 @@ const MainAppRouter = () => {
         path="/dashboard/service-provider"
         element={
           <ProtectedRoute allowedRoles={['ServiceProvider']}>
-            <ServiceProviderDashboard />
+            <DashboardLayout>
+              <ServiceProviderDashboard />
+            </DashboardLayout>
           </ProtectedRoute>
         }
       />
