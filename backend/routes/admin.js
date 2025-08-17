@@ -5,24 +5,33 @@ const router = express.Router();
 // Middleware to check if user is authenticated and is admin
 const requireAdmin = async (req, res, next) => {
   try {
+    console.log('Admin middleware - Session ID:', req.sessionID);
+    console.log('Admin middleware - Session data:', req.session);
+    
     // Check if user is logged in via session
     const userId = req.session.userId;
+    console.log('Admin middleware - User ID from session:', userId);
     
     if (!userId) {
+      console.log('Admin middleware - No user ID in session');
       return res.status(401).json({ message: 'Not authenticated' });
     }
     
     // Get user from database
     const user = await User.findById(userId).select('-password');
+    console.log('Admin middleware - User found in DB:', user ? `${user.firstName} ${user.lastName} (${user.role})` : 'Not found');
     
     if (!user) {
+      console.log('Admin middleware - User not found in database');
       return res.status(401).json({ message: 'User not found' });
     }
     
     if (user.role !== 'Admin') {
+      console.log('Admin middleware - User role is not Admin:', user.role);
       return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
     }
     
+    console.log('Admin middleware - Admin access granted');
     // Add user to request object for use in route handlers
     req.user = user;
     next();
@@ -401,18 +410,25 @@ router.patch('/users/:userId/toggle-status', requireAdmin, async (req, res) => {
 // Delete user
 router.delete('/users/:userId', requireAdmin, async (req, res) => {
   try {
+    console.log('Delete user request - User ID to delete:', req.params.userId);
+    console.log('Delete user request - Admin user:', req.user ? `${req.user.firstName} ${req.user.lastName}` : 'Not set');
+    
     const { userId } = req.params;
     
     const user = await User.findById(userId);
     if (!user) {
+      console.log('Delete user - User not found:', userId);
       return res.status(404).json({ 
         success: false, 
         message: 'User not found' 
       });
     }
 
+    console.log('Delete user - Target user:', `${user.firstName} ${user.lastName} (${user.role})`);
+
     // Don't allow deleting admin users
     if (user.role === 'Admin') {
+      console.log('Delete user - Attempted to delete admin user');
       return res.status(403).json({ 
         success: false, 
         message: 'Cannot delete admin users' 
@@ -421,6 +437,7 @@ router.delete('/users/:userId', requireAdmin, async (req, res) => {
 
     // Don't allow deleting yourself
     if (userId === req.user._id.toString()) {
+      console.log('Delete user - Attempted to delete own account');
       return res.status(403).json({ 
         success: false, 
         message: 'Cannot delete your own account' 
@@ -428,6 +445,7 @@ router.delete('/users/:userId', requireAdmin, async (req, res) => {
     }
 
     await User.findByIdAndDelete(userId);
+    console.log('Delete user - Successfully deleted:', `${user.firstName} ${user.lastName}`);
 
     res.json({
       success: true,

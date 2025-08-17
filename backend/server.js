@@ -3,6 +3,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const session = require('express-session');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -24,14 +25,20 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Session configuration
 app.use(session({
-  secret: 'tourist_management_secret',
+  secret: process.env.SESSION_SECRET || 'tourist_management_secret_key_2024',
   resave: false,
   saveUninitialized: false,
+  name: 'tourist.sid', // Custom session name
   cookie: { 
     secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-    maxAge: 1000 * 60 * 60 * 24 // 24 hours
+    httpOnly: true, // Prevent XSS attacks
+    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
   }
 }));
 

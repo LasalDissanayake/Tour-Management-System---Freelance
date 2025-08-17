@@ -8,7 +8,9 @@ import {
   EnvelopeIcon, 
   LockClosedIcon,
   UserGroupIcon,
-  SparklesIcon
+  SparklesIcon,
+  PhoneIcon,
+  CameraIcon
 } from '@heroicons/react/24/outline';
 
 const Register = () => {
@@ -16,6 +18,7 @@ const Register = () => {
     firstName: '',
     lastName: '',
     email: '',
+    mobile: '',
     password: '',
     confirmPassword: '',
     role: 'Tourist',
@@ -24,6 +27,8 @@ const Register = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
   const { register, authState } = useAuth();
   const navigate = useNavigate();
   
@@ -33,6 +38,18 @@ const Register = () => {
       ...formData,
       [name]: value,
     });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePicture(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfilePicturePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
   
   const handleSubmit = async (e) => {
@@ -44,10 +61,37 @@ const Register = () => {
     }
     
     try {
-      await register(formData);
+      // Create FormData object for file upload
+      const submitData = new FormData();
+      
+      // Add all form fields to FormData
+      submitData.append('firstName', formData.firstName);
+      submitData.append('lastName', formData.lastName);
+      submitData.append('email', formData.email);
+      submitData.append('mobile', formData.mobile);
+      submitData.append('password', formData.password);
+      submitData.append('role', formData.role);
+      
+      if (profilePicture) {
+        submitData.append('profilePicture', profilePicture);
+      }
+
+      // Debug: Log the form data being sent
+      console.log('Form data being sent:');
+      for (let [key, value] of submitData.entries()) {
+        console.log(key, value);
+      }
+
+      await register(submitData);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      console.error('Registration error:', err);
+      console.error('Error response:', err.response?.data);
+      setError(
+        err.response?.data?.message || 
+        err.response?.data?.errors?.map(e => e.message).join(', ') || 
+        'Registration failed. Please try again.'
+      );
     }
   };
 
@@ -122,6 +166,50 @@ const Register = () => {
           
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
+              {/* Profile Picture Upload */}
+              <div className="group">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Profile Picture (Optional)
+                </label>
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    {profilePicturePreview ? (
+                      <img
+                        src={profilePicturePreview}
+                        alt="Profile preview"
+                        className="w-20 h-20 rounded-full object-cover border-2 border-gray-300"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center">
+                        <UserIcon className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                    <label
+                      htmlFor="profilePicture"
+                      className="absolute bottom-0 right-0 bg-emerald-500 rounded-full p-1 cursor-pointer hover:bg-emerald-600 transition-colors duration-200"
+                    >
+                      <CameraIcon className="w-3 h-3 text-white" />
+                    </label>
+                  </div>
+                  <input
+                    id="profilePicture"
+                    name="profilePicture"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600">
+                      Upload a profile picture to personalize your account
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Supported formats: JPG, PNG, GIF (Max 5MB)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Name Fields */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="group">
@@ -184,6 +272,28 @@ const Register = () => {
                     className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                     placeholder="john@example.com"
                     value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              {/* Mobile Number Input */}
+              <div className="group">
+                <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-2">
+                  Mobile Number
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <PhoneIcon className="h-5 w-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors duration-200" />
+                  </div>
+                  <input
+                    id="mobile"
+                    name="mobile"
+                    type="tel"
+                    required
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                    placeholder="+1234567890"
+                    value={formData.mobile}
                     onChange={handleChange}
                   />
                 </div>
