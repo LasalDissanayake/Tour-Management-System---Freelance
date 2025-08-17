@@ -10,7 +10,13 @@ import {
   CogIcon,
   TrashIcon,
   MagnifyingGlassIcon,
-  DocumentArrowDownIcon
+  DocumentArrowDownIcon,
+  EyeIcon,
+  XMarkIcon,
+  UserIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  CalendarIcon
 } from '@heroicons/react/24/outline';
 
 const AdminDashboard = () => {
@@ -38,6 +44,12 @@ const AdminDashboard = () => {
     message: '',
     onConfirm: null,
     userToDelete: null
+  });
+
+  // User details modal state
+  const [userDetailsModal, setUserDetailsModal] = useState({
+    isOpen: false,
+    user: null
   });
 
   // Fetch user statistics
@@ -111,6 +123,22 @@ const AdminDashboard = () => {
   // Close confirmation modal
   const closeConfirmModal = () => {
     setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null, userToDelete: null });
+  };
+
+  // Open user details modal
+  const openUserDetails = (user) => {
+    setUserDetailsModal({
+      isOpen: true,
+      user: user
+    });
+  };
+
+  // Close user details modal
+  const closeUserDetailsModal = () => {
+    setUserDetailsModal({
+      isOpen: false,
+      user: null
+    });
   };
 
   // Toggle user status
@@ -527,13 +555,22 @@ const AdminDashboard = () => {
                       </div>
                     </td>
                     <td className="px-8 py-6 whitespace-nowrap">
-                      <button
-                        onClick={() => openDeleteConfirmation(user)}
-                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-lg text-red-700 bg-red-100 hover:bg-red-200 hover:scale-105 transition-all duration-200"
-                      >
-                        <TrashIcon className="h-4 w-4 mr-1" />
-                        Delete
-                      </button>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => openUserDetails(user)}
+                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-lg text-blue-700 bg-blue-100 hover:bg-blue-200 hover:scale-105 transition-all duration-200"
+                        >
+                          <EyeIcon className="h-4 w-4 mr-1" />
+                          View
+                        </button>
+                        <button
+                          onClick={() => openDeleteConfirmation(user)}
+                          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-lg text-red-700 bg-red-100 hover:bg-red-200 hover:scale-105 transition-all duration-200"
+                        >
+                          <TrashIcon className="h-4 w-4 mr-1" />
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -592,6 +629,216 @@ const AdminDashboard = () => {
         cancelText="Cancel"
         type="danger"
       />
+
+      {/* User Details Modal */}
+      {userDetailsModal.isOpen && userDetailsModal.user && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 transform transition-all duration-300 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-4 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                    <UserIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">User Details</h3>
+                    <p className="text-blue-100 text-sm">Complete user information</p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeUserDetailsModal}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors duration-200"
+                >
+                  <XMarkIcon className="w-6 h-6 text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              {/* Profile Section */}
+              <div className="flex items-center space-x-6 mb-8 pb-6 border-b border-gray-200">
+                <div className="flex-shrink-0">
+                  {userDetailsModal.user.profilePicture ? (
+                    <img
+                      src={`http://localhost:5000${userDetailsModal.user.profilePicture}`}
+                      alt="Profile"
+                      className="w-20 h-20 rounded-full object-cover border-4 border-blue-100"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center border-4 border-blue-100">
+                      <span className="text-2xl font-bold text-white">
+                        {userDetailsModal.user.firstName[0]}{userDetailsModal.user.lastName[0]}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-2xl font-bold text-gray-900 mb-2">
+                    {userDetailsModal.user.firstName} {userDetailsModal.user.lastName}
+                  </h4>
+                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getRoleColor(userDetailsModal.user.role)}`}>
+                    {userDetailsModal.user.role}
+                  </span>
+                </div>
+              </div>
+
+              {/* User Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h5 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <UserIcon className="w-5 h-5 mr-2 text-blue-600" />
+                    Basic Information
+                  </h5>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <EnvelopeIcon className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-500">Email Address</p>
+                        <p className="text-gray-900">{userDetailsModal.user.email}</p>
+                      </div>
+                    </div>
+                    
+                    {userDetailsModal.user.mobile && (
+                      <div className="flex items-center space-x-3">
+                        <PhoneIcon className="w-5 h-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Mobile Number</p>
+                          <p className="text-gray-900">{userDetailsModal.user.mobile}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Account Information */}
+                <div className="space-y-4">
+                  <h5 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <CalendarIcon className="w-5 h-5 mr-2 text-blue-600" />
+                    Account Information
+                  </h5>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Member Since</p>
+                      <p className="text-gray-900">
+                        {new Date(userDetailsModal.user.createdAt).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Last Updated</p>
+                      <p className="text-gray-900">
+                        {new Date(userDetailsModal.user.updatedAt).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Role-specific Information */}
+              {userDetailsModal.user.role !== 'Admin' && (
+                (userDetailsModal.user.specialization || userDetailsModal.user.experience || 
+                 userDetailsModal.user.businessName || userDetailsModal.user.serviceType || 
+                 userDetailsModal.user.nationality || (userDetailsModal.user.preferences && userDetailsModal.user.preferences.length > 0))
+              ) && (
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h5 className="text-lg font-semibold text-gray-900 mb-4">
+                    {userDetailsModal.user.role} Specific Information
+                  </h5>
+                  
+                  {userDetailsModal.user.role === 'Guide' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {userDetailsModal.user.specialization && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Specialization</p>
+                          <p className="text-gray-900">{userDetailsModal.user.specialization}</p>
+                        </div>
+                      )}
+                      {userDetailsModal.user.experience && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Experience</p>
+                          <p className="text-gray-900">{userDetailsModal.user.experience} years</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {userDetailsModal.user.role === 'ServiceProvider' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {userDetailsModal.user.businessName && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Business Name</p>
+                          <p className="text-gray-900">{userDetailsModal.user.businessName}</p>
+                        </div>
+                      )}
+                      {userDetailsModal.user.serviceType && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Service Type</p>
+                          <p className="text-gray-900">{userDetailsModal.user.serviceType}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {userDetailsModal.user.role === 'Tourist' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {userDetailsModal.user.nationality && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Nationality</p>
+                          <p className="text-gray-900">{userDetailsModal.user.nationality}</p>
+                        </div>
+                      )}
+                      {userDetailsModal.user.preferences && userDetailsModal.user.preferences.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Preferences</p>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {userDetailsModal.user.preferences.map((pref, index) => (
+                              <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                {pref}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={closeUserDetailsModal}
+                  className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    closeUserDetailsModal();
+                    openDeleteConfirmation(userDetailsModal.user);
+                  }}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+                >
+                  Delete User
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
