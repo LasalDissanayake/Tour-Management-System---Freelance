@@ -20,7 +20,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const AdminDashboard = () => {
-  const { authState, logout } = useAuth();
+  const { authState } = useAuth();
   const { showSuccess, showError, showWarning, showInfo } = useToast();
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({
@@ -234,14 +234,6 @@ const AdminDashboard = () => {
     }, 500);
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
-
   const getRoleColor = (role) => {
     switch (role) {
       case 'Guide':
@@ -273,44 +265,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Enhanced Header with gradient */}
-      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-20 justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
-                <CogIcon className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-                <p className="text-blue-100 text-sm">System Management & Analytics</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-6">
-              <div className="text-right">
-                <p className="text-white font-medium">
-                  {authState.user?.firstName} {authState.user?.lastName}
-                </p>
-                <p className="text-blue-200 text-sm">Administrator</p>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-white font-semibold">
-                  {authState.user?.firstName?.[0]}{authState.user?.lastName?.[0]}
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="group relative overflow-hidden rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-red-600 hover:shadow-lg hover:scale-105"
-              >
-                <span className="relative z-10">Logout</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 transform translate-y-full group-hover:translate-y-0 transition-transform duration-200"></div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div>
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Enhanced Stats Cards with animations */}
