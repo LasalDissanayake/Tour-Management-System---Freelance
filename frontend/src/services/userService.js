@@ -1,17 +1,9 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api';
-
-// Create axios instance with default config
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
+import api, { endpoints } from './api';
 
 export const userService = {
   // Get user profile
   getProfile: async () => {
-    const response = await api.get('/auth/profile');
+    const response = await api.get(endpoints.auth.profile);
     return response.data;
   },
 
@@ -26,7 +18,7 @@ export const userService = {
       };
     }
     
-    const response = await api.put('/auth/profile', profileData, config);
+    const response = await api.put(endpoints.auth.profile, profileData, config);
     return response.data;
   },
 
@@ -35,7 +27,7 @@ export const userService = {
     const formData = new FormData();
     formData.append('profilePicture', file);
     
-    const response = await api.post('/auth/upload-profile-picture', formData, {
+    const response = await api.post(endpoints.auth.uploadProfile, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -45,7 +37,7 @@ export const userService = {
 
   // Delete user profile
   deleteProfile: async () => {
-    const response = await api.delete('/auth/profile');
+    const response = await api.delete(endpoints.auth.deleteProfile);
     return response.data;
   },
 };

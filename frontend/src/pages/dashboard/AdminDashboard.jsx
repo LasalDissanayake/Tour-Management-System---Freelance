@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
-import axios from 'axios';
+import api, { endpoints, apiUtils } from '../../services/api';
 import {
   UserGroupIcon,
   ChartBarIcon,
@@ -20,7 +20,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const AdminDashboard = () => {
-  const { authState, logout } = useAuth();
+  const { authState } = useAuth();
   const { showSuccess, showError, showWarning, showInfo } = useToast();
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState({
@@ -55,9 +55,7 @@ const AdminDashboard = () => {
   // Fetch user statistics
   const fetchStats = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/stats', {
-        withCredentials: true
-      });
+      const response = await api.get(endpoints.admin.stats);
       if (response.data.success) {
         setStats(response.data.stats);
       }
@@ -70,9 +68,16 @@ const AdminDashboard = () => {
   // Fetch users list
   const fetchUsers = async (page = 1, role = 'all', search = '') => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/admin/users?page=${page}&role=${role}&limit=10&search=${search}`, {
-        withCredentials: true
+      const queryParams = apiUtils.buildQueryString({
+        page,
+        role: role === 'all' ? undefined : role,
+        limit: 10,
+        search: search.trim() || undefined
       });
+      
+      const url = `${endpoints.admin.users}${queryParams ? `?${queryParams}` : ''}`;
+      const response = await api.get(url);
+      
       if (response.data.success) {
         setUsers(response.data.users);
         setTotalPages(response.data.pagination.totalPages);
@@ -98,9 +103,7 @@ const AdminDashboard = () => {
   // Confirm delete user
   const confirmDeleteUser = async (userId) => {
     try {
-      const response = await axios.delete(`http://localhost:5000/api/admin/users/${userId}`, {
-        withCredentials: true
-      });
+      const response = await api.delete(endpoints.admin.deleteUser(userId));
       if (response.data.success) {
         // Close modal first
         setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null, userToDelete: null });
@@ -144,9 +147,7 @@ const AdminDashboard = () => {
   // Toggle user status
   const toggleUserStatus = async (userId) => {
     try {
-      const response = await axios.patch(`http://localhost:5000/api/admin/users/${userId}/toggle-status`, {}, {
-        withCredentials: true
-      });
+      const response = await api.patch(endpoints.admin.toggleUserStatus(userId), {});
       if (response.data.success) {
         // Refresh users list and stats
         fetchUsers(currentPage, selectedRole, searchTerm);
@@ -163,17 +164,14 @@ const AdminDashboard = () => {
     try {
       showInfo('📄 Generating report... Please wait');
       
-      // Build URL with current filters
-      const params = new URLSearchParams();
-      if (selectedRole !== 'all') {
-        params.append('role', selectedRole);
-      }
-      if (searchTerm.trim() !== '') {
-        params.append('search', searchTerm.trim());
-      }
+      // Build query parameters with current filters
+      const queryParams = apiUtils.buildQueryString({
+        role: selectedRole === 'all' ? undefined : selectedRole,
+        search: searchTerm.trim() || undefined
+      });
       
       // Use window.open for PDF download to avoid CORS issues
-      const reportUrl = `http://localhost:5000/api/admin/users/report${params.toString() ? '?' + params.toString() : ''}`;
+      const reportUrl = `${api.defaults.baseURL}${endpoints.admin.generateReport}${queryParams ? `?${queryParams}` : ''}`;
       const newWindow = window.open(reportUrl, '_blank');
       
       // Fallback if popup is blocked
@@ -236,14 +234,6 @@ const AdminDashboard = () => {
     }, 500);
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
-
   const getRoleColor = (role) => {
     switch (role) {
       case 'Guide':
@@ -275,44 +265,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Enhanced Header with gradient */}
-      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 shadow-lg">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-20 justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2">
-                <CogIcon className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-                <p className="text-blue-100 text-sm">System Management & Analytics</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-6">
-              <div className="text-right">
-                <p className="text-white font-medium">
-                  {authState.user?.firstName} {authState.user?.lastName}
-                </p>
-                <p className="text-blue-200 text-sm">Administrator</p>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-white font-semibold">
-                  {authState.user?.firstName?.[0]}{authState.user?.lastName?.[0]}
-                </span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="group relative overflow-hidden rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-red-600 hover:shadow-lg hover:scale-105"
-              >
-                <span className="relative z-10">Logout</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 transform translate-y-full group-hover:translate-y-0 transition-transform duration-200"></div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div>
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Enhanced Stats Cards with animations */}
@@ -662,7 +615,7 @@ const AdminDashboard = () => {
                 <div className="flex-shrink-0">
                   {userDetailsModal.user.profilePicture ? (
                     <img
-                      src={`http://localhost:5000${userDetailsModal.user.profilePicture}`}
+                      src={`${api.defaults.baseURL}${userDetailsModal.user.profilePicture}`}
                       alt="Profile"
                       className="w-20 h-20 rounded-full object-cover border-4 border-blue-100"
                     />

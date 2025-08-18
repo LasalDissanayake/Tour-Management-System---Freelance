@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    strictPort: true,
+    strictPort: false, // Allow Vite to use alternative ports if 5173 is busy
     host: true
   },
   resolve: {
