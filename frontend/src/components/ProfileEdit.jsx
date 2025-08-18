@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import userService from '../services/userService';
+import api from '../services/api';
 import { 
   UserIcon, 
   EnvelopeIcon, 
@@ -44,7 +45,7 @@ const ProfileEdit = () => {
       });
       
       if (authState.user.profilePicture) {
-        setProfilePicturePreview(`http://localhost:5000${authState.user.profilePicture}`);
+        setProfilePicturePreview(`${api.defaults.baseURL}${authState.user.profilePicture}`);
       }
     }
   }, [authState.user]);
@@ -112,7 +113,7 @@ const ProfileEdit = () => {
       });
       
       if (authState.user.profilePicture) {
-        setProfilePicturePreview(`http://localhost:5000${authState.user.profilePicture}`);
+        setProfilePicturePreview(`${api.defaults.baseURL}${authState.user.profilePicture}`);
       }
     }
   };

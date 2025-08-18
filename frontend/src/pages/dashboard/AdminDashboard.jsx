@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import ConfirmationModal from '../../components/ui/ConfirmationModal';
-import axios from 'axios';
+import api, { endpoints, apiUtils } from '../../services/api';
 import {
   UserGroupIcon,
   ChartBarIcon,
@@ -55,9 +55,7 @@ const AdminDashboard = () => {
   // Fetch user statistics
   const fetchStats = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/stats', {
-        withCredentials: true
-      });
+      const response = await api.get(endpoints.admin.stats);
       if (response.data.success) {
         setStats(response.data.stats);
       }
@@ -70,9 +68,16 @@ const AdminDashboard = () => {
   // Fetch users list
   const fetchUsers = async (page = 1, role = 'all', search = '') => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/admin/users?page=${page}&role=${role}&limit=10&search=${search}`, {
-        withCredentials: true
+      const queryParams = apiUtils.buildQueryString({
+        page,
+        role: role === 'all' ? undefined : role,
+        limit: 10,
+        search: search.trim() || undefined
       });
+      
+      const url = `${endpoints.admin.users}${queryParams ? `?${queryParams}` : ''}`;
+      const response = await api.get(url);
+      
       if (response.data.success) {
         setUsers(response.data.users);
         setTotalPages(response.data.pagination.totalPages);
@@ -98,9 +103,7 @@ const AdminDashboard = () => {
   // Confirm delete user
   const confirmDeleteUser = async (userId) => {
     try {
-      const response = await axios.delete(`http://localhost:5000/api/admin/users/${userId}`, {
-        withCredentials: true
-      });
+      const response = await api.delete(endpoints.admin.deleteUser(userId));
       if (response.data.success) {
         // Close modal first
         setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null, userToDelete: null });
@@ -144,9 +147,7 @@ const AdminDashboard = () => {
   // Toggle user status
   const toggleUserStatus = async (userId) => {
     try {
-      const response = await axios.patch(`http://localhost:5000/api/admin/users/${userId}/toggle-status`, {}, {
-        withCredentials: true
-      });
+      const response = await api.patch(endpoints.admin.toggleUserStatus(userId), {});
       if (response.data.success) {
         // Refresh users list and stats
         fetchUsers(currentPage, selectedRole, searchTerm);
@@ -163,17 +164,14 @@ const AdminDashboard = () => {
     try {
       showInfo('📄 Generating report... Please wait');
       
-      // Build URL with current filters
-      const params = new URLSearchParams();
-      if (selectedRole !== 'all') {
-        params.append('role', selectedRole);
-      }
-      if (searchTerm.trim() !== '') {
-        params.append('search', searchTerm.trim());
-      }
+      // Build query parameters with current filters
+      const queryParams = apiUtils.buildQueryString({
+        role: selectedRole === 'all' ? undefined : selectedRole,
+        search: searchTerm.trim() || undefined
+      });
       
       // Use window.open for PDF download to avoid CORS issues
-      const reportUrl = `http://localhost:5000/api/admin/users/report${params.toString() ? '?' + params.toString() : ''}`;
+      const reportUrl = `${api.defaults.baseURL}${endpoints.admin.generateReport}${queryParams ? `?${queryParams}` : ''}`;
       const newWindow = window.open(reportUrl, '_blank');
       
       // Fallback if popup is blocked
@@ -662,7 +660,7 @@ const AdminDashboard = () => {
                 <div className="flex-shrink-0">
                   {userDetailsModal.user.profilePicture ? (
                     <img
-                      src={`http://localhost:5000${userDetailsModal.user.profilePicture}`}
+                      src={`${api.defaults.baseURL}${userDetailsModal.user.profilePicture}`}
                       alt="Profile"
                       className="w-20 h-20 rounded-full object-cover border-4 border-blue-100"
                     />

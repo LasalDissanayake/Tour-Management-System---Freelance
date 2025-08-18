@@ -1,8 +1,5 @@
 import { createContext, useContext, useCallback, useState } from 'react';
-import axios from 'axios';
-
-// API base URL
-const API_URL = 'http://localhost:5000/api';
+import api, { endpoints } from '../services/api';
 
 // Initial auth state
 const initialState = {
@@ -30,7 +27,7 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = useCallback(async () => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true }));
-      const response = await axios.get(`${API_URL}/auth/profile`, { withCredentials: true });
+      const response = await api.get(endpoints.auth.profile);
       
       if (response.data && response.data.user) {
         setAuthState({
@@ -72,11 +69,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const response = await axios.post(
-        `${API_URL}/auth/login`, 
-        credentials, 
-        { withCredentials: true }
-      );
+      const response = await api.post(endpoints.auth.login, credentials);
       
       setAuthState({
         user: response.data.user,
@@ -100,9 +93,7 @@ export const AuthProvider = ({ children }) => {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
       // Determine content type based on data type
-      const config = { 
-        withCredentials: true 
-      };
+      const config = {};
       
       // If data is FormData (for file upload), DON'T set content-type header
       // The browser will set it automatically with the proper boundary
@@ -112,11 +103,7 @@ export const AuthProvider = ({ children }) => {
         };
       }
       
-      const response = await axios.post(
-        `${API_URL}/auth/register`, 
-        data,
-        config
-      );
+      const response = await api.post(endpoints.auth.register, data, config);
       
       setAuthState({
         user: response.data.user,
@@ -137,11 +124,7 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = async () => {
     try {
-      await axios.post(
-        `${API_URL}/auth/logout`, 
-        {}, 
-        { withCredentials: true }
-      );
+      await api.post(endpoints.auth.logout, {});
       
       setAuthState({
         user: null,
